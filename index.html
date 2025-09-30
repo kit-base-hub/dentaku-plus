@@ -3,19 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <title>でんたく＋ 最終版</title>
+<!-- モバイル対応 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
 <style>
-body { font-family:sans-serif; display:flex; flex-direction:column; align-items:center; margin:0; padding:0; }
-.top-bar { display:flex; align-items:center; justify-content:space-between; width:400px; margin-top:20px; }
+body { 
+  font-family:sans-serif; 
+  display:flex; 
+  flex-direction:column; 
+  align-items:center; 
+  margin:0; 
+  padding:10px;  /* 端に余白 */
+  max-width: 100%;
+}
+.top-bar { 
+  display:flex; 
+  align-items:center; 
+  justify-content:space-between; 
+  width:100%; 
+  max-width:400px; 
+  margin-top:20px; 
+}
 #title { font-size:24px; margin:0 10px; }
-#calcInput { font-size:24px; width:380px; text-align:right; margin-top:10px; padding:5px; z-index:50; }
-#calculator { display:grid; grid-template-columns:repeat(4,80px); gap:5px; margin-top:10px; }
-button { font-size:20px; padding:15px; }
-.popup { position:absolute; background:#fff; border:1px solid #ccc; padding:10px; z-index:100; display:none; max-height:200px; overflow-y:auto; }
-#searchResults { width:380px; position:absolute; background:#fff; border:1px solid #ccc; display:none; max-height:150px; overflow-y:auto; z-index:49; } 
+#calcInput { font-size:24px; width:100%; text-align:right; margin-top:10px; padding:5px; z-index:50; }
+#calculator { 
+  display:grid; 
+  grid-template-columns:repeat(4, 20%);  /* 幅を割合に */
+  gap:5px; 
+  margin-top:10px; 
+  width:100%;
+  max-width:400px;
+}
+button { 
+  font-size:20px; 
+  padding:15px; 
+  width:100%;  /* ボタンをセルいっぱいに */
+  box-sizing:border-box;
+}
+.popup { 
+  position:absolute; 
+  background:#fff; 
+  border:1px solid #ccc; 
+  padding:10px; 
+  z-index:100; 
+  display:none; 
+  max-height:200px; 
+  overflow-y:auto; 
+}
+#searchResults { 
+  width:100%; 
+  max-width:380px; 
+  position:absolute; 
+  background:#fff; 
+  border:1px solid #ccc; 
+  display:none; 
+  max-height:150px; 
+  overflow-y:auto; 
+  z-index:49; 
+} 
 #searchResults div { padding:5px; cursor:pointer; }
 #searchResults div:hover { background:#eee; }
-#searchContainer { position:relative; width:380px; margin-top:10px; }
+#searchContainer { position:relative; width:100%; max-width:380px; margin-top:10px; }
 </style>
 </head>
 <body>
@@ -65,7 +113,6 @@ button { font-size:20px; padding:15px; }
 const calcInput = document.getElementById("calcInput");
 const searchResults = document.getElementById("searchResults");
 
-// 公式データ（名前と式、プレースホルダー付き）
 const formulas = [
   {name:"正弦関数", expr:"sin([x])"},
   {name:"余弦関数", expr:"cos([x])"},
@@ -79,7 +126,6 @@ const formulas = [
   {name:"質量エネルギー等価", expr:"E=[m]*c^2"}
 ];
 
-// プレースホルダー対応カーソル配置
 function focusFirstPlaceholder(){
   const val = calcInput.value;
   const phPos = val.indexOf("[");
@@ -93,13 +139,11 @@ function focusFirstPlaceholder(){
   calcInput.focus();
 }
 
-// 公式選択時にバーに表示
 function selectFormula(f){
   calcInput.value = f.expr;
   focusFirstPlaceholder();
 }
 
-// 通常文字挿入
 function insertAtCursor(text){
   const start=calcInput.selectionStart;
   const end=calcInput.selectionEnd;
@@ -109,7 +153,6 @@ function insertAtCursor(text){
   calcInput.focus();
 }
 
-// 電卓ボタン
 document.getElementById("AC").addEventListener("click",()=>calcInput.value="");
 document.getElementById("backspace").addEventListener("click",()=>{
   const start=calcInput.selectionStart;
@@ -129,12 +172,10 @@ document.querySelectorAll("#calculator button").forEach(btn=>{
   btn.addEventListener("click",()=>insertAtCursor(val));
 });
 
-// 計算
 const history=[];
 document.getElementById("equal").addEventListener("click",()=>{
   try{
     let expr=calcInput.value.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/＋/g,"+");
-    // プレースホルダーに数字が入っている場合のみ置換、それ以外は0
     expr = expr.replace(/\[([^\]]*?)\]/g,(m,p)=>{ 
       const n=parseFloat(p); 
       return isNaN(n)?0:n; 
@@ -145,13 +186,11 @@ document.getElementById("equal").addEventListener("click",()=>{
   } catch(e){ calcInput.value="Error"; }
 });
 
-// いろいろな式ポップアップ（6個のみ、括弧修正）
 const formulaPopup=document.getElementById("formulaPopup");
 const formulaBtn=document.getElementById("formulaBtn");
 const preset6 = formulas.slice(0,6);
 preset6.forEach(f=>{
   const b=document.createElement("button");
-  // 修正: 中身は空の括弧だけ表示
   b.textContent = f.expr.replace(/\[.*?\]/g,"");
   b.style.margin="3px";
   b.onclick=()=>{ selectFormula(f); formulaPopup.style.display="none"; };
@@ -159,7 +198,6 @@ preset6.forEach(f=>{
 });
 formulaBtn.addEventListener("click",()=>formulaPopup.style.display=formulaPopup.style.display==="none"?"block":"none");
 
-// 履歴
 const historyPopup=document.getElementById("historyPopup");
 const historyBtn=document.getElementById("historyBtn");
 historyBtn.addEventListener("click",()=>{
@@ -178,7 +216,6 @@ historyBtn.addEventListener("click",()=>{
   historyPopup.style.display = historyPopup.style.display==="none"?"block":"none";
 });
 
-// 検索予測
 calcInput.addEventListener("input",()=>{
   const q=calcInput.value.trim().toLowerCase();
   searchResults.innerHTML="";
@@ -193,7 +230,6 @@ calcInput.addEventListener("input",()=>{
   searchResults.style.display = matches.length>0?"block":"none";
 });
 
-// 外クリックでポップアップ閉じる
 document.addEventListener("click",(e)=>{
   if(!historyPopup.contains(e.target)&&e.target!==historyBtn) historyPopup.style.display="none";
   if(!formulaPopup.contains(e.target)&&e.target!==formulaBtn) formulaPopup.style.display="none";
